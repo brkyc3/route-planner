@@ -5,14 +5,23 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "locations")
+@Table(name = "locations", indexes = {
+        @Index(name = "idx_location_code", columnList = "location_code")
+})
 public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String country;
+
+    @Column(nullable = false)
     private String city;
+
+    @Column(nullable = false, unique = true)
     private String locationCode;
 } 

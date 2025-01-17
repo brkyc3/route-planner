@@ -18,7 +18,10 @@ import java.util.TreeSet;
 
 @Data
 @Entity
-@Table(name = "transportations")
+@Table(name = "transportations", indexes = {
+        @Index(name = "idx_origin_location", columnList = "origin_location_id"),
+        @Index(name = "idx_destination_location", columnList = "destination_location_id")
+})
 public class Transportation implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -26,16 +29,18 @@ public class Transportation implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "origin_location_id")
     private Location originLocation;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "destination_location_id")
     private Location destinationLocation;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TransportationType transportationType;
 
+    @Column(nullable = false)
     private String operatingDays;
 } 
