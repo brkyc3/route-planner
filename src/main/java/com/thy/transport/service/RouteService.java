@@ -11,6 +11,7 @@ import com.thy.transport.repository.TransportationRepository;
 import com.thy.transport.service.dto.TransportationDto;
 import com.thy.transport.util.RouteValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RouteService {
     private final TransportationRepository transportationRepository;
     private final LocationMapper locationMapper;
@@ -39,9 +41,7 @@ public class RouteService {
 
     private List<TransportationDto> getRoutesFromOrigin(String originCode, Map<String, List<Transportation>> searchCache) {
         List<Transportation> transportation = searchCache.computeIfAbsent(originCode, transportationRepository::findByOriginCode);
-        System.out.println("cache result "+ transportation);
         return transportation.stream().map(transportationMapper::toDto).collect(Collectors.toList());
-
     }
 
     private void findDirectRoutes(RouteSearchRequest request, int dayOfWeek,

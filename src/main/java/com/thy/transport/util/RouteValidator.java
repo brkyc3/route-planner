@@ -35,21 +35,10 @@ public class RouteValidator {
         TransportationDto second = route.get(1);
         TransportationDto third = route.get(2);
 
-        // Must have exactly one FLIGHT, can be in any position
-        // Case 1: FLIGHT in the middle
+        // Must have exactly one FLIGHT in the middle
         if (TransportationType.FLIGHT.equals(second.getTransportationType())) {
             return !TransportationType.FLIGHT.equals(first.getTransportationType())
                     && !TransportationType.FLIGHT.equals(third.getTransportationType());
-        }
-        // Case 2: FLIGHT at start
-        if (TransportationType.FLIGHT.equals(first.getTransportationType())) {
-            return !TransportationType.FLIGHT.equals(second.getTransportationType())
-                    && !TransportationType.FLIGHT.equals(third.getTransportationType());
-        }
-        // Case 3: FLIGHT at end
-        if (TransportationType.FLIGHT.equals(third.getTransportationType())) {
-            return !TransportationType.FLIGHT.equals(first.getTransportationType())
-                    && !TransportationType.FLIGHT.equals(second.getTransportationType());
         }
 
         return false;

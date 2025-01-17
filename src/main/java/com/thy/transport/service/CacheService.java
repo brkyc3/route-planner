@@ -3,6 +3,7 @@ package com.thy.transport.service;
 import com.thy.transport.config.Constants;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -11,12 +12,12 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CacheService {
     private final CacheManager cacheManager;
 
     @PostConstruct
     public void init() {
-        System.out.println("Evicting all");
         evictAllCaches();
     }
 

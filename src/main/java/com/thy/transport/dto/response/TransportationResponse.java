@@ -7,7 +7,6 @@ import java.util.SortedSet;
 
 @Data
 public class TransportationResponse {
-    private Long id;
     private LocationResponse originLocation;
     private LocationResponse destinationLocation;
     private TransportationType transportationType;
