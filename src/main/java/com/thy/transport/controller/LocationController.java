@@ -5,6 +5,9 @@ import com.thy.transport.dto.response.LocationResponse;
 import com.thy.transport.service.LocationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +25,15 @@ public class LocationController {
 
     @Operation(summary = "Get all locations")
     @GetMapping
-    public List<LocationResponse> getAllLocations() {
-        return locationService.getAllLocations();
+    public Page<LocationResponse> getAllLocations(
+            @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        return locationService.getAllLocations(pageable);
+    }
+
+    @Operation(summary = "Search locations by name")
+    @GetMapping("/search")
+    public List<LocationResponse> searchLocationsByName(@RequestParam String name) {
+        return locationService.searchLocationsByName(name);
     }
 
     @Operation(summary = "Get location by ID")

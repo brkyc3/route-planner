@@ -1,5 +1,6 @@
 package com.thy.transport.service;
 
+import com.thy.transport.config.Constants;
 import com.thy.transport.dto.request.RouteSearchRequest;
 import com.thy.transport.dto.response.RouteResponse;
 import com.thy.transport.dto.response.RouteSegment;
@@ -12,6 +13,7 @@ import com.thy.transport.service.dto.TransportationDto;
 import com.thy.transport.util.RouteValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -25,6 +27,8 @@ public class RouteService {
     private final LocationMapper locationMapper;
     private final TransportationMapper transportationMapper;
 
+    @Cacheable(value = Constants.RedisCacheNames.ROUTES,
+            key = "#request.originLocationCode + '_' + #request.destinationLocationCode + '_' + #request.travelDate.dayOfWeek")
     public List<RouteResponse> searchRoutes(RouteSearchRequest request) {
         List<RouteResponse> allRoutes = new ArrayList<>();
         int dayOfWeek = request.getTravelDate().getDayOfWeek().getValue();
@@ -44,21 +48,15 @@ public class RouteService {
         return transportation.stream().map(transportationMapper::toDto).collect(Collectors.toList());
     }
 
-    private void findDirectRoutes(RouteSearchRequest request, int dayOfWeek,
-            List<RouteResponse> allRoutes, Map<String, List<Transportation>> searchCache) {
-        
-        List<TransportationDto> directRoutes = getRoutesFromOrigin(request.getOriginLocationCode(), searchCache)
-                .stream()
-                .filter(t -> t.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode()))
-                .filter(t -> TransportationType.FLIGHT.equals(t.getTransportationType()))
-                .collect(Collectors.toList());
+    private void findDirectRoutes(RouteSearchRequest request, int dayOfWeek, List<RouteResponse> allRoutes, Map<String, List<Transportation>> searchCache) {
+
+        List<TransportationDto> directRoutes = getRoutesFromOrigin(request.getOriginLocationCode(), searchCache).stream().filter(t -> t.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode())).filter(t -> TransportationType.FLIGHT.equals(t.getTransportationType())).collect(Collectors.toList());
 
         allRoutes.addAll(createRouteResponses(directRoutes, dayOfWeek));
     }
 
-    private void findTwoLegRoutes(RouteSearchRequest request, int dayOfWeek,
-            List<RouteResponse> allRoutes, Map<String, List<Transportation>> searchCache) {
-        
+    private void findTwoLegRoutes(RouteSearchRequest request, int dayOfWeek, List<RouteResponse> allRoutes, Map<String, List<Transportation>> searchCache) {
+
         List<TransportationDto> firstLegRoutes = getRoutesFromOrigin(request.getOriginLocationCode(), searchCache);
 
         for (TransportationDto firstLeg : firstLegRoutes) {
@@ -67,10 +65,7 @@ public class RouteService {
             }
 
             String intermediateLocation = firstLeg.getDestinationLocation().getLocationCode();
-            List<TransportationDto> secondLegRoutes = getRoutesFromOrigin(intermediateLocation, searchCache)
-                    .stream()
-                    .filter(t -> t.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode()))
-                    .toList();
+            List<TransportationDto> secondLegRoutes = getRoutesFromOrigin(intermediateLocation, searchCache).stream().filter(t -> t.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode())).toList();
 
             for (TransportationDto secondLeg : secondLegRoutes) {
                 if (isValidConnection(secondLeg, dayOfWeek, firstLeg)) {
@@ -84,9 +79,8 @@ public class RouteService {
         }
     }
 
-    private void findThreeLegRoutes(RouteSearchRequest request, int dayOfWeek,
-            List<RouteResponse> allRoutes, Map<String, List<Transportation>> searchCache) {
-        
+    private void findThreeLegRoutes(RouteSearchRequest request, int dayOfWeek, List<RouteResponse> allRoutes, Map<String, List<Transportation>> searchCache) {
+
         List<TransportationDto> firstLegRoutes = getRoutesFromOrigin(request.getOriginLocationCode(), searchCache);
 
         for (TransportationDto firstLeg : firstLegRoutes) {
@@ -98,16 +92,12 @@ public class RouteService {
             List<TransportationDto> secondLegRoutes = getRoutesFromOrigin(firstDestination, searchCache);
 
             for (TransportationDto secondLeg : secondLegRoutes) {
-                if (!isValidConnection(secondLeg, dayOfWeek, firstLeg) || 
-                    secondLeg.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode())) {
+                if (!isValidConnection(secondLeg, dayOfWeek, firstLeg) || secondLeg.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode())) {
                     continue;
                 }
 
                 String secondDestination = secondLeg.getDestinationLocation().getLocationCode();
-                List<TransportationDto> thirdLegRoutes = getRoutesFromOrigin(secondDestination, searchCache)
-                        .stream()
-                        .filter(t -> t.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode()))
-                        .collect(Collectors.toList());
+                List<TransportationDto> thirdLegRoutes = getRoutesFromOrigin(secondDestination, searchCache).stream().filter(t -> t.getDestinationLocation().getLocationCode().equals(request.getDestinationLocationCode())).collect(Collectors.toList());
 
                 for (TransportationDto thirdLeg : thirdLegRoutes) {
                     if (isValidConnection(thirdLeg, dayOfWeek, secondLeg)) {
@@ -123,41 +113,28 @@ public class RouteService {
     }
 
     private boolean isValidConnection(TransportationDto leg, int dayOfWeek, TransportationDto previousLeg) {
-        return leg.getOperatingDays().contains(dayOfWeek) &&
-               !leg.getDestinationLocation().getLocationCode()
-                   .equals(previousLeg.getOriginLocation().getLocationCode());
+        return leg.getOperatingDays().contains(dayOfWeek) && !leg.getDestinationLocation().getLocationCode().equals(previousLeg.getOriginLocation().getLocationCode());
     }
 
     private List<RouteResponse> createRouteResponses(List<TransportationDto> routes, int dayOfWeek) {
-        return routes.stream()
-                .filter(transportation -> transportation.getOperatingDays().contains(dayOfWeek))
-                .map(transportation -> {
-                    RouteResponse response = new RouteResponse();
-                    response.setSegments(List.of(createRouteSegment(transportation)));
-                    response.setTotalLegs(1);
-                    return response;
-                })
-                .collect(Collectors.toList());
+        return routes.stream().filter(transportation -> transportation.getOperatingDays().contains(dayOfWeek)).map(transportation -> {
+            RouteResponse response = new RouteResponse();
+            response.setSegments(List.of(createRouteSegment(transportation)));
+            response.setTotalLegs(1);
+            return response;
+        }).collect(Collectors.toList());
     }
 
     private RouteResponse createTwoLegRoute(TransportationDto firstLeg, TransportationDto secondLeg) {
         RouteResponse response = new RouteResponse();
-        response.setSegments(Arrays.asList(
-                createRouteSegment(firstLeg),
-                createRouteSegment(secondLeg)
-        ));
+        response.setSegments(Arrays.asList(createRouteSegment(firstLeg), createRouteSegment(secondLeg)));
         response.setTotalLegs(2);
         return response;
     }
 
-    private RouteResponse createThreeLegRoute(TransportationDto firstLeg, TransportationDto secondLeg,
-            TransportationDto thirdLeg) {
+    private RouteResponse createThreeLegRoute(TransportationDto firstLeg, TransportationDto secondLeg, TransportationDto thirdLeg) {
         RouteResponse response = new RouteResponse();
-        response.setSegments(Arrays.asList(
-                createRouteSegment(firstLeg),
-                createRouteSegment(secondLeg),
-                createRouteSegment(thirdLeg)
-        ));
+        response.setSegments(Arrays.asList(createRouteSegment(firstLeg), createRouteSegment(secondLeg), createRouteSegment(thirdLeg)));
         response.setTotalLegs(3);
         return response;
     }

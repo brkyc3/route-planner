@@ -9,10 +9,11 @@ import com.thy.transport.repository.LocationRepository;
 import com.thy.transport.repository.TransportationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,10 +24,9 @@ public class TransportationService {
     private final TransportationMapper transportationMapper;
     private final CacheService cacheService;
 
-    public List<TransportationResponse> getAllTransportations() {
-        return transportationRepository.findAllWithLocationsAndOperatingDays().stream()
-                .map(transportationMapper::toResponse)
-                .collect(Collectors.toList());
+    public Page<TransportationResponse> getAllTransportations(Pageable pageable) {
+        return transportationRepository.findAllWithLocationsAndOperatingDays(pageable)
+                .map(transportationMapper::toResponse);
     }
 
     public TransportationResponse getTransportationById(Long id) {
@@ -39,7 +39,7 @@ public class TransportationService {
         Transportation transportation = transportationMapper.toEntity(request);
         setLocations(transportation, request);
         Transportation savedTransportation = transportationRepository.save(transportation);
-        cacheService.evictRouteCache(transportation.getOriginLocation().getLocationCode());
+        cacheService.evictTransportaionCache(transportation.getOriginLocation().getLocationCode());
         return transportationMapper.toResponse(savedTransportation);
     }
 
@@ -50,8 +50,8 @@ public class TransportationService {
                     transportationMapper.updateEntityFromRequest(request, transportation);
                     setLocations(transportation, request);
                     Transportation updatedTransportation = transportationRepository.save(transportation);
-                    cacheService.evictRouteCache(oldOriginCode);
-                    cacheService.evictRouteCache(updatedTransportation.getOriginLocation().getLocationCode());
+                    cacheService.evictTransportaionCache(oldOriginCode);
+                    cacheService.evictTransportaionCache(updatedTransportation.getOriginLocation().getLocationCode());
                     return transportationMapper.toResponse(updatedTransportation);
                 })
                 .orElse(null);
@@ -62,7 +62,7 @@ public class TransportationService {
                 .map(transportation -> {
                     String originCode = transportation.getOriginLocation().getLocationCode();
                     transportationRepository.delete(transportation);
-                    cacheService.evictRouteCache(originCode);
+                    cacheService.evictTransportaionCache(originCode);
                     return true;
                 })
                 .orElse(false);

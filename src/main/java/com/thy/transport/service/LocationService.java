@@ -5,23 +5,28 @@ import com.thy.transport.dto.response.LocationResponse;
 import com.thy.transport.mapper.LocationMapper;
 import com.thy.transport.model.Location;
 import com.thy.transport.repository.LocationRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class LocationService {
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
 
-    public LocationService(LocationRepository locationRepository, LocationMapper locationMapper) {
-        this.locationRepository = locationRepository;
-        this.locationMapper = locationMapper;
+    public Page<LocationResponse> getAllLocations(Pageable pageable) {
+        return locationRepository.findAll(pageable)
+                .map(locationMapper::toResponse);
     }
 
-    public List<LocationResponse> getAllLocations() {
-        return locationRepository.findAll().stream()
+    public List<LocationResponse> searchLocationsByName(String name) {
+        List<Location> locations = locationRepository.findTop10ByNameContainingIgnoreCase(name);
+        return locations.stream()
                 .map(locationMapper::toResponse)
                 .collect(Collectors.toList());
     }

@@ -2,6 +2,7 @@ package com.thy.transport.config;
 
 public final class Constants {
     public static class RedisCacheNames{
-        public static final String ROUTES_BY_ORIGIN = "routesByOrigin";
+        public static final String TRANSPORTATION_BY_ORIGIN = "transportationByOrigin";
+        public static final String ROUTES = "routes";
     }
 }

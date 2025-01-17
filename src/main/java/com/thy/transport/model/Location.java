@@ -6,7 +6,8 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "locations", indexes = {
-        @Index(name = "idx_location_code", columnList = "location_code")
+        @Index(name = "idx_location_code", columnList = "location_code"),
+        @Index(name = "idx_name", columnList = "name")
 })
 public class Location {
     @Id

@@ -26,14 +26,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: transport-redisinsight
+    ports:
+      - "5540:5540"  # RedisInsight UI port
+    environment:
+      - REDISINSIGHT_PORT=5540
+
   redis:
     image: redis:latest
     container_name: transport-redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes  # Enable persistence
+    command: redis-server --appendonly no  # Enable persistence
 
 volumes:
   postgres_data:
