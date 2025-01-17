@@ -1,0 +1,31 @@
+spring:
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:redis}
+      port: ${SPRING_REDIS_PORT:6379}
+      maxmemory: 512mb
+      maxmemory-policy: allkeys-lru
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/transport_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    open-in-view : true
+
+
+jwt:
+  expiration: ${JWT_EXPIRATION_IN_MS:86400000}
+  secret: ${JWT_SECRET:mydefaultjwtsecret}
+
+logging:
+  level:
+    root: info
