@@ -3,13 +3,16 @@ package com.thy.transport.service;
 import com.thy.transport.dto.request.TransportationRequest;
 import com.thy.transport.dto.response.TransportationResponse;
 import com.thy.transport.mapper.TransportationMapper;
+import com.thy.transport.model.Location;
 import com.thy.transport.model.Transportation;
 import com.thy.transport.repository.LocationRepository;
 import com.thy.transport.repository.TransportationRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,9 +69,14 @@ public class TransportationService {
     }
 
     private void setLocations(Transportation transportation, TransportationRequest request) {
-        locationRepository.findByLocationCode(request.getOriginLocationCode())
-                .ifPresent(transportation::setOriginLocation);
-        locationRepository.findByLocationCode(request.getDestinationLocationCode())
-                .ifPresent(transportation::setDestinationLocation);
+        // Validate and set origin location
+        Location originLocation = locationRepository.findByLocationCode(request.getOriginLocationCode())
+                .orElseThrow(() -> new EntityNotFoundException("Origin location not found for code: " + request.getOriginLocationCode()));
+        transportation.setOriginLocation(originLocation);
+
+        // Validate and set destination location
+        Location destinationLocation = locationRepository.findByLocationCode(request.getDestinationLocationCode())
+                .orElseThrow(() -> new EntityNotFoundException("Destination location not found for code: " + request.getDestinationLocationCode()));
+        transportation.setDestinationLocation(destinationLocation);
     }
 } 
