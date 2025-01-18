@@ -20,7 +20,8 @@ import java.util.TreeSet;
 @Entity
 @Table(name = "transportations", indexes = {
         @Index(name = "idx_origin_location", columnList = "origin_location_id"),
-        @Index(name = "idx_destination_location", columnList = "destination_location_id")
+        @Index(name = "idx_destination_location", columnList = "destination_location_id"),
+        @Index(name = "idx_origin_destination_location", columnList = "origin_location_id,destination_location_id")
 })
 public class Transportation implements Serializable {
     private static final long serialVersionUID = 1L;

@@ -24,4 +24,13 @@ public interface TransportationRepository extends JpaRepository<Transportation, 
             "WHERE t.originLocation.locationCode = :originCode")
     List<Transportation> findByOriginCode(String originCode);
 
+    @Cacheable(value = Constants.RedisCacheNames.TRANSPORTATION_BY_DESTINATION, key = "#destinationCode")
+    @Query("SELECT t FROM Transportation t " +
+            "JOIN FETCH t.originLocation " +
+            "JOIN FETCH t.destinationLocation " +
+            "WHERE t.destinationLocation.locationCode = :destinationCode AND t.transportationType != 'FLIGHT'")
+    List<Transportation> findNonFlightsByDestinationCode(String destinationCode);
+
+
+
 } 

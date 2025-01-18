@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
+import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -28,6 +29,22 @@ public class CacheService {
     public void evictTransportaionCache(String originCode) {
         Optional.ofNullable(cacheManager.getCache(Constants.RedisCacheNames.TRANSPORTATION_BY_ORIGIN))
                 .ifPresent(cache -> cache.evict(originCode));
+    }
+
+
+    public void logCacheStats() {
+        cacheManager.getCacheNames().forEach(cacheName -> {
+            RedisCache cache = (RedisCache)cacheManager.getCache(cacheName);
+            if (cache != null) {
+                log.info("Cache [{}] gets: {} , hits : {}, miss : {}",
+                        cacheName, cache.getStatistics().getGets(),
+                        cache.getStatistics().getHits(),
+                        cache.getStatistics().getMisses()
+                );
+            }
+        });
+
+
     }
 
 } 

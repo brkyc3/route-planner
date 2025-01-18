@@ -34,6 +34,10 @@ class RouteServiceTest {
     @Mock
     private TransportationMapper transportationMapper;
 
+    @Mock
+    private CacheService cacheService;
+
+
     @InjectMocks
     private RouteService routeService;
 
@@ -115,7 +119,7 @@ class RouteServiceTest {
         // Set up transportation entities
         Transportation uberAB = createTransportation(locationA, locationB, TransportationType.UBER);
         Transportation flightBC = createTransportation(locationB, locationC, TransportationType.FLIGHT);
-        Transportation busBC = createTransportation(locationB, locationC, TransportationType.BUS);
+        Transportation busCD = createTransportation(locationC, locationD, TransportationType.BUS);
 
         // Set up transportation DTOs
         TransportationDto uberABDto = createTransportationDto(locationA, locationB, TransportationType.UBER);
@@ -128,8 +132,8 @@ class RouteServiceTest {
         when(transportationRepository.findByOriginCode("B")).thenReturn(List.of(flightBC));
         when(transportationMapper.toDto(flightBC)).thenReturn(flightBCDto);
 
-        when(transportationRepository.findByOriginCode("C")).thenReturn(List.of(busBC));
-        when(transportationMapper.toDto(busBC)).thenReturn(busCDDto);
+        when(transportationRepository.findNonFlightsByDestinationCode("D")).thenReturn(List.of(busCD));
+        when(transportationMapper.toDto(busCD)).thenReturn(busCDDto);
 
         // Act
         List<RouteResponse> routes = routeService.searchRoutes(request);
@@ -163,8 +167,7 @@ class RouteServiceTest {
         when(transportationRepository.findByOriginCode("B")).thenReturn(List.of(flightBC));
         when(transportationMapper.toDto(flightBC)).thenReturn(flightBCDto);
 
-        when(transportationRepository.findByOriginCode("C")).thenReturn(List.of(busCD));
-        when(transportationMapper.toDto(busCD)).thenReturn(busCDDto);
+        when(transportationRepository.findNonFlightsByDestinationCode("E")).thenReturn(Collections.emptyList());
 
         // Act
         List<RouteResponse> routes = routeService.searchRoutes(request);
@@ -194,7 +197,7 @@ class RouteServiceTest {
         when(transportationRepository.findByOriginCode("B")).thenReturn(List.of(subwayBC));
         when(transportationMapper.toDto(subwayBC)).thenReturn(subwayBCDto);
 
-        when(transportationRepository.findByOriginCode("C")).thenReturn(List.of(busCD));
+        when(transportationRepository.findNonFlightsByDestinationCode("D")).thenReturn(List.of(busCD));
         when(transportationMapper.toDto(busCD)).thenReturn(busCDDto);
 
         // Act
@@ -225,7 +228,7 @@ class RouteServiceTest {
         when(transportationRepository.findByOriginCode("B")).thenReturn(List.of(flightBC));
         when(transportationMapper.toDto(flightBC)).thenReturn(flightBCDto);
 
-        when(transportationRepository.findByOriginCode("C")).thenReturn(List.of(flightCD));
+        when(transportationRepository.findNonFlightsByDestinationCode("D")).thenReturn(List.of(flightCD));
         when(transportationMapper.toDto(flightCD)).thenReturn(flightCDDto);
 
         // Act
@@ -251,7 +254,7 @@ class RouteServiceTest {
         when(transportationMapper.toDto(busAB)).thenReturn(busABDto);
         when(transportationRepository.findByOriginCode("B")).thenReturn(List.of(uberBC));
         when(transportationMapper.toDto(uberBC)).thenReturn(uberBCDto);
-        when(transportationRepository.findByOriginCode("C")).thenReturn(List.of(flightCD));
+        when(transportationRepository.findNonFlightsByDestinationCode("D")).thenReturn(List.of(flightCD));
         when(transportationMapper.toDto(flightCD)).thenReturn(flightCDDto);
 
         // Act
@@ -277,7 +280,7 @@ class RouteServiceTest {
         when(transportationMapper.toDto(flightAB)).thenReturn(flightABDto);
         when(transportationRepository.findByOriginCode("B")).thenReturn(List.of(uberBC));
         when(transportationMapper.toDto(uberBC)).thenReturn(uberBCDto);
-        when(transportationRepository.findByOriginCode("C")).thenReturn(List.of(subwayCD));
+        when(transportationRepository.findNonFlightsByDestinationCode("D")).thenReturn(List.of(subwayCD));
         when(transportationMapper.toDto(subwayCD)).thenReturn(subwayCDDto);
 
         // Act
