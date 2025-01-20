@@ -26,12 +26,6 @@ public class CacheService {
                 .forEach(cacheName -> cacheManager.getCache(cacheName).clear());
     }
 
-    public void evictTransportaionCache(String originCode) {
-        Optional.ofNullable(cacheManager.getCache(Constants.RedisCacheNames.TRANSPORTATION_BY_ORIGIN))
-                .ifPresent(cache -> cache.evict(originCode));
-    }
-
-
     public void logCacheStats() {
         cacheManager.getCacheNames().forEach(cacheName -> {
             RedisCache cache = (RedisCache)cacheManager.getCache(cacheName);
