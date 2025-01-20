@@ -32,7 +32,10 @@ public class RouteService {
     private final ForkJoinPool customForkJoinPool = new ForkJoinPool(100);
     private final CacheService cacheService;
 
-    @Cacheable(value = Constants.RedisCacheNames.ROUTES, key = "#request.originLocationCode + '_' + #request.destinationLocationCode + '_' + #request.travelDate.dayOfWeek")
+    @Cacheable(
+            value = Constants.RedisCacheNames.ROUTES,
+            key = "#request.originLocationCode + '_' + #request.destinationLocationCode + '_' + #request.travelDate.dayOfWeek"
+    )
     public List<RouteResponse> searchRoutes(RouteSearchRequest request) {
         int dayOfWeek = request.getTravelDate().getDayOfWeek().getValue();
         String origin = request.getOriginLocationCode();
@@ -88,7 +91,7 @@ public class RouteService {
                             .filter(route -> route.getOperatingDays().contains(dayOfWeek))
                             .collect(Collectors.toList());
                 } else {
-                    routes = destinationTransportationsCache.getOrDefault(location,Collections.emptyList());
+                    routes = destinationTransportationsCache.getOrDefault(location, Collections.emptyList());
                 }
 
                 long endTime = System.currentTimeMillis();

@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  app:
+  thy-backend:
     build: .
     ports:
       - "8080:8080"
@@ -14,6 +14,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+    networks:
+      - transport-network
+
   postgres:
     image: postgres:latest
     container_name: transport-postgres
@@ -25,21 +28,46 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - transport-network
+
+
+
+  thy-ui:
+    build:
+      context: ./thy-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api
+    depends_on:
+      - thy-backend
+    networks:
+      - transport-network
+
+
 
   redisinsight:
     image: redis/redisinsight:latest
     container_name: transport-redisinsight
     ports:
-      - "5540:5540"  # RedisInsight UI port
+      - "5540:5540"
     environment:
       - REDISINSIGHT_PORT=5540
+    networks:
+      - transport-network
+
 
   redis:
     image: redis:latest
     container_name: transport-redis
     ports:
       - "6379:6379"
-    command: redis-server --appendonly no  # Enable persistence
+    command: redis-server --appendonly no
+    networks:
+      - transport-network
+
 
 volumes:
   postgres_data:
