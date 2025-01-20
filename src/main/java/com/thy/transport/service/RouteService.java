@@ -9,6 +9,7 @@ import com.thy.transport.mapper.TransportationMapper;
 import com.thy.transport.model.TransportationType;
 import com.thy.transport.repository.TransportationRepository;
 import com.thy.transport.service.dto.TransportationDto;
+import com.thy.transport.util.RouteValidator;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,8 @@ public class RouteService {
     private final TransportationMapper transportationMapper;
     private final ForkJoinPool customForkJoinPool = new ForkJoinPool(100);
     private final CacheService cacheService;
+    private record GraphNode(String location, List<TransportationDto> path){}
+
 
     @Cacheable(
             value = Constants.RedisCacheNames.ROUTES,
@@ -77,7 +80,7 @@ public class RouteService {
                 // Check if this path could potentially lead to a valid route
                 List<TransportationType> types = currentPath.stream().map(TransportationDto::getTransportationType).collect(Collectors.toList());
 
-                if (!couldLeadToValidPath(types)) {
+                if (!RouteValidator.couldLeadToValidPath(types)) {
                     skippedQueries.incrementAndGet();
                     return;
                 }
@@ -109,7 +112,7 @@ public class RouteService {
                     if (nextLocation.equals(destination)) {
                         List<TransportationType> pathTypes = newPath.stream().map(TransportationDto::getTransportationType).collect(Collectors.toList());
 
-                        if (isValidTransportationPattern(pathTypes)) {
+                        if (RouteValidator.isValidTransportationPattern(pathTypes)) {
                             validRoutes.add(createRouteResponse(newPath));
                         }
                     } else if (newPath.size() < 3) {
@@ -129,42 +132,6 @@ public class RouteService {
 
         cacheService.logCacheStats();
         return validRoutes;
-    }
-
-    @Data
-    private static class GraphNode {
-        final String location;
-        final List<TransportationDto> path;
-
-        GraphNode(String location, List<TransportationDto> path) {
-            this.location = location;
-            this.path = path;
-        }
-    }
-
-    private boolean isValidTransportationPattern(List<TransportationType> path) {
-        // Single leg must be a flight
-        if (path.size() == 1) {
-            return TransportationType.FLIGHT.equals(path.get(0));
-        }
-
-        // Two legs: must be flight->other or other->flight
-        if (path.size() == 2) {
-            boolean firstIsFlight = TransportationType.FLIGHT.equals(path.get(0));
-            boolean secondIsFlight = TransportationType.FLIGHT.equals(path.get(1));
-            return firstIsFlight != secondIsFlight; // XOR - one must be flight, one must not be
-        }
-
-        // Three legs: must be other->flight->other
-        return !TransportationType.FLIGHT.equals(path.get(0)) && TransportationType.FLIGHT.equals(path.get(1)) && !TransportationType.FLIGHT.equals(path.get(2));
-    }
-
-    private boolean couldLeadToValidPath(List<TransportationType> currentPath) {
-        if (currentPath.size() == 2) {
-            return TransportationType.FLIGHT.equals(currentPath.get(1)) && !TransportationType.FLIGHT.equals(currentPath.get(0));
-        } else {
-            return true;
-        }
     }
 
     private RouteSegment createRouteSegment(TransportationDto transportation) {
