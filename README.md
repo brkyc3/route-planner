@@ -26,7 +26,7 @@ The **Transportation Route Service** is a Java-based application designed to man
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/transportation-route-service.git
+   git clone https://github.com/brkyc3/route-planner.git
    cd transportation-route-service
    ```
 
