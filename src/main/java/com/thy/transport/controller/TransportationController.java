@@ -32,9 +32,8 @@ public class TransportationController {
 
     @Operation(summary = "Get transportation by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<TransportationResponse> getTransportationById(@PathVariable Long id) {
-        TransportationResponse transportation = transportationService.getTransportationById(id);
-        return transportation != null ? ResponseEntity.ok(transportation) : ResponseEntity.notFound().build();
+    public TransportationResponse getTransportationById(@PathVariable Long id) {
+        return transportationService.getTransportationById(id);
     }
 
     @Operation(summary = "Create new transportation")
@@ -45,9 +44,8 @@ public class TransportationController {
 
     @Operation(summary = "Update transportation")
     @PutMapping("/{id}")
-    public ResponseEntity<TransportationResponse> updateTransportation(@PathVariable Long id, @RequestBody TransportationRequest request) {
-        TransportationResponse updatedTransportation = transportationService.updateTransportation(id, request);
-        return updatedTransportation != null ? ResponseEntity.ok(updatedTransportation) : ResponseEntity.notFound().build();
+    public TransportationResponse updateTransportation(@PathVariable Long id, @RequestBody TransportationRequest request) {
+        return transportationService.updateTransportation(id, request);
     }
 
     @Operation(summary = "Delete transportation")

@@ -2,6 +2,7 @@ package com.thy.transport.service;
 
 import com.thy.transport.dto.request.TransportationRequest;
 import com.thy.transport.dto.response.TransportationResponse;
+import com.thy.transport.exception.BusinessException;
 import com.thy.transport.mapper.TransportationMapper;
 import com.thy.transport.model.Location;
 import com.thy.transport.model.Transportation;
@@ -11,6 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +24,6 @@ public class TransportationService {
     private final TransportationRepository transportationRepository;
     private final LocationRepository locationRepository;
     private final TransportationMapper transportationMapper;
-    private final CacheService cacheService;
 
     public Page<TransportationResponse> getAllTransportations(Pageable pageable) {
         return transportationRepository.findAllWithLocationsAndOperatingDays(pageable)
@@ -32,14 +33,13 @@ public class TransportationService {
     public TransportationResponse getTransportationById(Long id) {
         return transportationRepository.findById(id)
                 .map(transportationMapper::toResponse)
-                .orElse(null);
+                .orElseThrow(()-> new BusinessException("Not found", HttpStatus.NOT_FOUND));
     }
 
     public TransportationResponse createTransportation(TransportationRequest request) {
         Transportation transportation = transportationMapper.toEntity(request);
         setLocations(transportation, request);
         Transportation savedTransportation = transportationRepository.save(transportation);
-        cacheService.evictTransportaionCache(transportation.getOriginLocation().getLocationCode());
         return transportationMapper.toResponse(savedTransportation);
     }
 
@@ -50,11 +50,9 @@ public class TransportationService {
                     transportationMapper.updateEntityFromRequest(request, transportation);
                     setLocations(transportation, request);
                     Transportation updatedTransportation = transportationRepository.save(transportation);
-                    cacheService.evictTransportaionCache(oldOriginCode);
-                    cacheService.evictTransportaionCache(updatedTransportation.getOriginLocation().getLocationCode());
                     return transportationMapper.toResponse(updatedTransportation);
                 })
-                .orElse(null);
+                .orElseThrow(()-> new BusinessException("Not found", HttpStatus.NOT_FOUND));
     }
 
     public boolean deleteTransportation(Long id) {
@@ -62,7 +60,6 @@ public class TransportationService {
                 .map(transportation -> {
                     String originCode = transportation.getOriginLocation().getLocationCode();
                     transportationRepository.delete(transportation);
-                    cacheService.evictTransportaionCache(originCode);
                     return true;
                 })
                 .orElse(false);

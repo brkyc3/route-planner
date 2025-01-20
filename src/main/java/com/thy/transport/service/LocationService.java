@@ -2,6 +2,7 @@ package com.thy.transport.service;
 
 import com.thy.transport.dto.request.LocationRequest;
 import com.thy.transport.dto.response.LocationResponse;
+import com.thy.transport.exception.BusinessException;
 import com.thy.transport.mapper.LocationMapper;
 import com.thy.transport.model.Location;
 import com.thy.transport.repository.LocationRepository;
@@ -44,13 +45,14 @@ public class LocationService {
     }
 
     public LocationResponse updateLocation(Long id, LocationRequest request) {
-        return locationRepository.findById(id)
+            return locationRepository.findById(id)
                 .map(location -> {
                     locationMapper.updateEntityFromRequest(request, location);
                     Location updatedLocation = locationRepository.save(location);
                     return locationMapper.toResponse(updatedLocation);
                 })
-                .orElse(null);
+                .orElseThrow(()->new BusinessException("Not Valid request"));
+
     }
 
     public boolean deleteLocation(Long id) {

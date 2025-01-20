@@ -51,9 +51,8 @@ public class LocationController {
 
     @Operation(summary = "Update location")
     @PutMapping("/{id}")
-    public ResponseEntity<LocationResponse> updateLocation(@PathVariable Long id, @RequestBody LocationRequest request) {
-        LocationResponse updatedLocation = locationService.updateLocation(id, request);
-        return updatedLocation != null ? ResponseEntity.ok(updatedLocation) : ResponseEntity.notFound().build();
+    public LocationResponse updateLocation(@PathVariable Long id, @RequestBody LocationRequest request) {
+        return locationService.updateLocation(id, request);
     }
 
     @Operation(summary = "Delete location")
