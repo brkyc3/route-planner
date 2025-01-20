@@ -9,7 +9,6 @@ import com.thy.transport.mapper.TransportationMapper;
 import com.thy.transport.model.TransportationType;
 import com.thy.transport.repository.TransportationRepository;
 import com.thy.transport.service.dto.TransportationDto;
-import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
