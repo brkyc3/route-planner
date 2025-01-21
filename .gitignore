@@ -67,7 +67,7 @@ thy-ui/.env.local
 thy-ui/.env.development.local
 thy-ui/.env.test.local
 thy-ui/.env.production.local
-thy-ui/
+
 thy-ui/npm-debug.log*
 thy-ui/yarn-debug.log*
 thy-ui/yarn-error.log*
